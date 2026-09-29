@@ -57,12 +57,12 @@ curl -fsSL https://raw.githubusercontent.com/wallentx/antigravity-cli-termux/dev
 ### Step 2: Apply the Web GUI Patch
 Run the patch script to configure the web interface, apply the Antigravity logo and title, and create the launchers:
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/dsundaravadhanan/antigravity-cli-termux-to-gui/main/patch%20agy%20web%20gui.sh" | bash
+curl -fsSL https://raw.githubusercontent.com/dsundaravadhanan/antigravity-cli-termux-to-gui/main/patch_agy_web_gui.sh | bash
 ```
 
 Or if you have the script locally on your phone:
 ```bash
-bash "patch agy web gui.sh"
+bash patch_agy_web_gui.sh
 ```
 
 ---
