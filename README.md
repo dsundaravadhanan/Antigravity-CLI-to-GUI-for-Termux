@@ -288,8 +288,8 @@ The CLI authenticates with Google Account credentials:
   2. Tap **Sign In** to redirect to a new browser tab and complete Google authentication.
   3. Once signed in, return to the `localhost:4400` tab and wait a few moments; the Antigravity workspace will open automatically.
 - **Session Storage**: OAuth credentials are saved locally at `~/.gemini/antigravity-cli/antigravity-oauth-token` so subsequent launches remain signed in.
-- **Sign Out**: Run `/logout` inside the prompt to clear saved credentials.
-- **Remote / SSH**: Automatically detects remote sessions and outputs an authorization URL to complete sign-in on your local browser.
+- **Sign Out**: Sign-out should be performed directly within the Web GUI interface via your account settings to clear active session credentials.
+- **Session Isolation (Web GUI vs. Termux CLI)**: The Web GUI running on `localhost:4400` is completely separated from the Termux terminal CLI. All conversations and data inside the browser Web GUI are not visible, mirrored, or shared with the Termux terminal prompt, and vice versa.
 
 ---
 
@@ -316,7 +316,7 @@ By using Antigravity CLI, you agree to Google's product terms and data use polic
 ## Reverting / Uninstalling Web GUI
 
 > [!WARNING]
-> **Data Loss & Session Disclaimer**: Running `revert_gui.sh` forcibly terminates active web server processes and cleans local runtime state. Any unsaved conversation history, active agent sessions, or transient workspace data on `localhost:4400` will be lost. Back up any critical code, prompts, or chat outputs prior to running this script. The repository author and contributors accept no responsibility or legal liability for any data loss, lost conversations, or workflow disruptions caused by executing this uninstaller (see [DISCLAIMER.md](DISCLAIMER.md)).
+> **Data Loss & Session Disclaimer**: Running `revert_gui.sh` forcibly terminates active web server processes and cleans local runtime state. All conversations and data inside `localhost:4400` will be permanently deleted. Back up any critical code, prompts, or chat outputs prior to running this script. The repository author and contributors accept no responsibility or legal liability for any data loss, lost conversations, or workflow disruptions caused by executing this uninstaller (see [DISCLAIMER.md](DISCLAIMER.md)).
 
 To remove all Web GUI customizations, background daemon services, launchers, and binary patches, run:
 

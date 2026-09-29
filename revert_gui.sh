@@ -21,6 +21,39 @@ echo "======================================================"
 echo "    Antigravity Web GUI Revert / Uninstaller          "
 echo "======================================================"
 
+echo ""
+echo "======================================================"
+echo "    WARNING: Potential Data & Session Loss            "
+echo "======================================================"
+echo "Reverting the Web GUI will terminate all active web"
+echo "processes and delete localhost:4400 runtime state."
+echo "All conversations and data inside the local Web GUI"
+echo "will be permanently deleted."
+echo ""
+echo "The repository author and contributors are not"
+echo "responsible for any data loss resulting from this script."
+echo "======================================================"
+echo ""
+
+if [ "${AGY_FORCE:-0}" != "1" ] && [ "$1" != "-y" ] && [ "$1" != "--yes" ]; then
+    if [ -t 0 ]; then
+        read -r -p "Are you sure you want to proceed? [y/N]: " CONFIRM
+    elif [ -e /dev/tty ]; then
+        read -r -p "Are you sure you want to proceed? [y/N]: " CONFIRM < /dev/tty
+    else
+        CONFIRM="n"
+    fi
+    case "$CONFIRM" in
+        [yY]|[yY][eE][sS])
+            echo "Proceeding with Web GUI uninstallation..."
+            ;;
+        *)
+            echo "Aborted by user. No changes were made."
+            exit 0
+            ;;
+    esac
+fi
+
 # ==============================================================================
 # [1/5] Terminate Running Web GUI Processes
 # ==============================================================================
