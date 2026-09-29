@@ -279,8 +279,33 @@ The patched official Google Antigravity icon will be added to your Android home 
 
 ---
 
+## Authentication
+
+The CLI authenticates with Google Account credentials:
+
+- **Web GUI Sign-In**:
+  1. On first launch, sign-in is prompted directly inside the Web GUI (`http://localhost:4400`).
+  2. Tap **Sign In** to redirect to a new browser tab and complete Google authentication.
+  3. Once signed in, return to the `localhost:4400` tab and wait a few moments; the Antigravity workspace will open automatically.
+- **Session Storage**: OAuth credentials are saved locally at `~/.gemini/antigravity-cli/antigravity-oauth-token` so subsequent launches remain signed in.
+- **Sign Out**: Run `/logout` inside the prompt to clear saved credentials.
+- **Remote / SSH**: Automatically detects remote sessions and outputs an authorization URL to complete sign-in on your local browser.
+
+---
+
+## Terms of Service & Data Use
+
+> [!WARNING]
+> Autonomous AI coding agents carry inherent security risks, including autonomous command execution, prompt injection, and environment changes. Always monitor and verify actions taken by the agent.
+
+By using Antigravity CLI, you agree to Google's product terms and data use policies:
+- **Terms of Service**: [antigravity.google/terms](https://antigravity.google/terms)
+- **Privacy Policy**: [policies.google.com/privacy](https://policies.google.com/privacy)
+
+---
+
 ## How It Works
 
 1. **Embedded Assets**: The Antigravity engine binary contains Google's React frontend bundle embedded internally. When launched with `--hub`, it serves these static assets over local HTTP on port 4400.
 2. **Browser Launch**: The launcher polls `http://127.0.0.1:4400` until the server responds, then invokes `termux-open-url` to launch your Android browser.
-3. **Authentication**: After completing Google Sign-In in your browser on initial launch, the OAuth token is stored at `~/.gemini/antigravity-cli/antigravity-oauth-token`. Subsequent launches remain logged in automatically.
+3. **Token Management**: The saved token at `~/.gemini/antigravity-cli/antigravity-oauth-token` is loaded automatically on each startup.
