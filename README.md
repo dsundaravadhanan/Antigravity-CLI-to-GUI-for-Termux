@@ -306,9 +306,10 @@ By using Antigravity CLI, you agree to Google's product terms and data use polic
 
 ## How It Works
 
-1. **Embedded Assets**: The Antigravity engine binary contains Google's React frontend bundle embedded internally. When launched with `--hub`, it serves these static assets over local HTTP on port 4400.
-2. **Browser Launch**: The launcher polls `http://127.0.0.1:4400` until the server responds, then invokes `termux-open-url` to launch your Android browser.
-3. **Token Management**: The saved token at `~/.gemini/antigravity-cli/antigravity-oauth-token` is loaded automatically on each startup.
+1. **100% Standalone on Android (No PC Required)**: Only your Android phone and an internet connection are needed. Unlike remote desktop streamers or relay proxies, the complete Antigravity CLI engine runs natively on your phone inside Termux, delivering the official Google Antigravity desktop Web GUI experience directly in your mobile browser.
+2. **Embedded Web Assets**: The compiled engine binary contains Google's official React web bundle internally. When executed with `--hub`, it serves this full desktop interface locally over HTTP on port 4400.
+3. **Automated Browser Launch**: The launcher polls `http://127.0.0.1:4400` until the local server is ready, then automatically opens your default Android browser directly into the workspace.
+4. **Token Management**: Google OAuth tokens stored at `~/.gemini/antigravity-cli/antigravity-oauth-token` are automatically loaded on each launch for immediate authentication.
 
 ---
 
