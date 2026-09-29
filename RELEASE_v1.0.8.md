@@ -32,3 +32,16 @@ Version 1.0.8 introduces a patch for running Google's official Antigravity Local
 ### 5. Automated Google OAuth Token Migration
 - Scans Android device storage, Download folders, and local project directories for `antigravity-oauth-token`.
 - Automatically copies and sets secure permissions (`600`) at `~/.gemini/antigravity-cli/antigravity-oauth-token`, allowing immediate authenticated access without repetitive browser logins.
+
+### 6. Full Reversion & Uninstaller (`revert_gui.sh`)
+- Completely removes all GUI launchers, background services, daemon logs, and network tweaks.
+- Restores the embedded binary assets back to pristine upstream defaults.
+- Leaves core Android storage access, glibc runtime, and upstream terminal `agy` CLI completely intact.
+
+---
+
+## Release Assets
+
+- `install.sh`: Automated quick-install script.
+- `patch_gui.sh`: Standalone Web GUI patcher for existing Antigravity CLI installations.
+- `revert_gui.sh`: Clean uninstaller and upstream restoration utility.

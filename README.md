@@ -57,12 +57,12 @@ curl -fsSL https://raw.githubusercontent.com/wallentx/antigravity-cli-termux/dev
 ### Step 2: Apply the Web GUI Patch
 Run the patch script to configure the web interface, apply the Antigravity logo and title, and create the launchers:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dsundaravadhanan/antigravity-cli-termux-to-gui/main/patch_agy_web_gui.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dsundaravadhanan/antigravity-cli-termux-to-gui/main/patch_gui.sh | bash
 ```
 
 Or if you have the script locally on your phone:
 ```bash
-bash patch_agy_web_gui.sh
+bash patch_gui.sh
 ```
 
 ---
@@ -310,6 +310,29 @@ By using Antigravity CLI, you agree to Google's product terms and data use polic
 2. **Embedded Web Assets**: The compiled engine binary contains Google's official React web bundle internally. When executed with `--hub`, it serves this full desktop interface locally over HTTP on port 4400.
 3. **Automated Browser Launch**: The launcher polls `http://127.0.0.1:4400` until the local server is ready, then automatically opens your default Android browser directly into the workspace.
 4. **Token Management**: Google OAuth tokens stored at `~/.gemini/antigravity-cli/antigravity-oauth-token` are automatically loaded on each launch for immediate authentication.
+
+---
+
+## Reverting / Uninstalling Web GUI
+
+To remove all Web GUI customizations, background daemon services, launchers, and binary patches, run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dsundaravadhanan/antigravity-cli-termux-to-gui/main/revert_gui.sh | bash
+```
+
+Or run locally:
+```bash
+bash revert_gui.sh
+```
+
+What `revert_gui.sh` does:
+1. **Stops Web GUI Processes**: Terminates active port 4400 and background daemon processes.
+2. **Removes Launchers**: Deletes `$PREFIX/bin/agy-gui`, `$PREFIX/bin/agy-hub`, `$PREFIX/bin/agy-ui`, and `$PREFIX/bin/agy-service`.
+3. **Cleans Runtime State**: Removes `hub.pid` and `hub.log`.
+4. **Reverts DNS Tweaks**: Removes the `no-aaaa` entry from `$PREFIX/etc/resolv.conf`.
+5. **Restores Upstream Binary**: Restores the embedded web assets inside `agy.va39` back to upstream defaults.
+6. **Preserves Upstream CLI**: Steps 1, 2, and 3 (storage permissions, dependencies, and upstream terminal `agy` CLI binary & credentials) remain completely untouched and functional in your terminal.
 
 ---
 

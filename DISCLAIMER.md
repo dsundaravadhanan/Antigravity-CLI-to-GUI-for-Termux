@@ -8,7 +8,7 @@ By accessing, downloading, installing, running, or utilizing any code, scripts, 
 
 ## 1. "As-Is" Software & Disclaimer of Warranties
 
-This project and its accompanying scripts (`install.sh`, `patch_agy_web_gui.sh`, documentation, and configuration utilities) are provided on an **"AS IS" AND "AS AVAILABLE" BASIS**, without warranties or representations of any kind, whether express, statutory, or implied.
+This project and its accompanying scripts (`install.sh`, `patch_gui.sh`, `revert_gui.sh`, documentation, and configuration utilities) are provided on an **"AS IS" AND "AS AVAILABLE" BASIS**, without warranties or representations of any kind, whether express, statutory, or implied.
 
 To the maximum extent permissible under applicable law, the author, contributors, and maintainers expressly disclaim all warranties, including but not limited to:
 - Implied warranties of merchantability, fitness for a particular purpose, and non-infringement.
