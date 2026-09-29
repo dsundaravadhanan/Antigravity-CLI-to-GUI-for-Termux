@@ -266,6 +266,19 @@ agy
 
 ---
 
+## Standalone Android App Experience
+
+The Web GUI can be installed to your Android home screen via Chrome to provide a dedicated standalone app experience:
+
+1. Start the server using `agy-gui` or `agy-service start`.
+2. When the Web GUI opens in Chrome at `http://localhost:4400`, tap the **three dots menu (⋮)** in the top-right corner.
+3. Select **Install app** (or **Add to Home screen**).
+4. Tap **Install**.
+
+The patched official Google Antigravity icon will be added to your Android home screen. Tapping it opens Antigravity in full-screen standalone app mode without browser toolbars or address bars.
+
+---
+
 ## How It Works
 
 1. **Embedded Assets**: The Antigravity engine binary contains Google's React frontend bundle embedded internally. When launched with `--hub`, it serves these static assets over local HTTP on port 4400.
