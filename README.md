@@ -47,7 +47,7 @@ What the automated installer does:
 
 If you prefer to separate the core upstream CLI installation from the Web GUI customizer:
 
-### Step 1: Install Upstream Antigravity CLI
+### Step 1: Install Upstream Antigravity CLI (Skip if already installed)
 Install the core CLI engine directly from [wallentx/antigravity-cli-termux](https://github.com/wallentx/antigravity-cli-termux):
 ```bash
 export AGY_INSTALL_SKIP_LAUNCH=1
