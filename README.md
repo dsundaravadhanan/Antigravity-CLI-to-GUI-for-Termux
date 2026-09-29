@@ -315,6 +315,9 @@ By using Antigravity CLI, you agree to Google's product terms and data use polic
 
 ## Reverting / Uninstalling Web GUI
 
+> [!WARNING]
+> **Data Loss & Session Disclaimer**: Running `revert_gui.sh` forcibly terminates active web server processes and cleans local runtime state. Any unsaved conversation history, active agent sessions, or transient workspace data on `localhost:4400` will be lost. Back up any critical code, prompts, or chat outputs prior to running this script. The repository author and contributors accept no responsibility or legal liability for any data loss, lost conversations, or workflow disruptions caused by executing this uninstaller (see [DISCLAIMER.md](DISCLAIMER.md)).
+
 To remove all Web GUI customizations, background daemon services, launchers, and binary patches, run:
 
 ```bash
