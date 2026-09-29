@@ -309,3 +309,10 @@ By using Antigravity CLI, you agree to Google's product terms and data use polic
 1. **Embedded Assets**: The Antigravity engine binary contains Google's React frontend bundle embedded internally. When launched with `--hub`, it serves these static assets over local HTTP on port 4400.
 2. **Browser Launch**: The launcher polls `http://127.0.0.1:4400` until the server responds, then invokes `termux-open-url` to launch your Android browser.
 3. **Token Management**: The saved token at `~/.gemini/antigravity-cli/antigravity-oauth-token` is loaded automatically on each startup.
+
+---
+
+## License & Legal Disclaimers
+
+- **License**: Distributed under the [Apache License 2.0](LICENSE.md).
+- **Disclaimer**: See [DISCLAIMER.md](DISCLAIMER.md) for limitation of liability and non-affiliation notices.
