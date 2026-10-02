@@ -3,13 +3,14 @@
 # Antigravity Web GUI Revert / Uninstaller Script
 # ==============================================================================
 # Completely removes all post-installation Web GUI components, launchers,
-# background daemon services, DNS configurations, and binary modifications,
-# restoring the system to a clean, upstream Antigravity CLI installation.
+# background daemon services, DNS configurations, CLI wrappers, and binary
+# modifications, restoring the system to a clean, upstream Antigravity CLI installation.
 #
-# Preserved (Steps 1, 2, 3):
+# Preserved:
+# - User authentication tokens and chat session history in ~/.gemini/
 # - Android storage permissions (termux-setup-storage)
 # - Core packages (glibc-repo, glibc-runner, python)
-# - Upstream Antigravity CLI binary and user authentication tokens
+# - Upstream native Antigravity CLI binary
 # ==============================================================================
 set -e
 
@@ -20,26 +21,20 @@ BIN_DIR="${PREFIX}/bin"
 echo "======================================================"
 echo "    Antigravity Web GUI Revert / Uninstaller          "
 echo "======================================================"
-
 echo ""
-echo "======================================================"
-echo "    WARNING: Potential Data & Session Loss            "
-echo "======================================================"
-echo "Reverting the Web GUI will terminate all active web"
-echo "processes and delete localhost:4400 runtime state."
-echo "All conversations and data inside the local Web GUI"
-echo "will be permanently deleted."
+echo "This will stop the Web GUI, remove GUI launchers,"
+echo "and restore your pure upstream Antigravity CLI."
 echo ""
-echo "The repository author and contributors are not"
-echo "responsible for any data loss resulting from this script."
+echo "NOTE: Your chat history, workspaces, and Google tokens"
+echo "in ~/.gemini/antigravity-cli are safely preserved."
 echo "======================================================"
 echo ""
 
-if [ "${AGY_FORCE:-0}" != "1" ] && [ "$1" != "-y" ] && [ "$1" != "--yes" ]; then
+if [ "${AGY_FORCE:-0}" != "1" ] && [ "${1:-}" != "-y" ] && [ "${1:-}" != "--yes" ]; then
     if [ -t 0 ]; then
-        read -r -p "Are you sure you want to proceed? [y/N]: " CONFIRM
+        read -r -p "Do you want to proceed with reverting Web GUI? [y/N]: " CONFIRM
     elif [ -e /dev/tty ]; then
-        read -r -p "Are you sure you want to proceed? [y/N]: " CONFIRM < /dev/tty
+        read -r -p "Do you want to proceed with reverting Web GUI? [y/N]: " CONFIRM < /dev/tty
     else
         CONFIRM="n"
     fi
@@ -81,15 +76,30 @@ fi
 echo "      Web GUI processes stopped."
 
 # ==============================================================================
-# [2/5] Remove Web GUI Launchers and Symlinks
+# [2/5] Restore Native agy Binary & Remove Wrapper
 # ==============================================================================
-echo "[2/5] Removing Web GUI launchers and symlinks..."
+echo "[2/5] Restoring native agy CLI binary..."
+
+# If agy was wrapped and native binary was saved as agy.real or agy.orig, restore it
+if [ -f "$BIN_DIR/agy.real" ]; then
+    mv -f "$BIN_DIR/agy.real" "$BIN_DIR/agy"
+    echo "      Restored native binary from $BIN_DIR/agy.real -> $BIN_DIR/agy"
+elif [ -f "$BIN_DIR/agy.orig" ]; then
+    mv -f "$BIN_DIR/agy.orig" "$BIN_DIR/agy"
+    echo "      Restored native binary from $BIN_DIR/agy.orig -> $BIN_DIR/agy"
+fi
+
+# ==============================================================================
+# [3/5] Remove Web GUI Launchers, Utilities and Symlinks
+# ==============================================================================
+echo "[3/5] Removing Web GUI launchers and symlinks..."
 
 LAUNCHERS=(
     "$BIN_DIR/agy-gui"
     "$BIN_DIR/agy-hub"
     "$BIN_DIR/agy-ui"
     "$BIN_DIR/agy-service"
+    "$BIN_DIR/agy-patch"
 )
 
 for file in "${LAUNCHERS[@]}"; do
@@ -107,9 +117,9 @@ if [ -f "$LOG_FILE" ]; then
 fi
 
 # ==============================================================================
-# [3/5] Revert Fast DNS Configuration
+# [4/5] Revert Fast DNS Configuration
 # ==============================================================================
-echo "[3/5] Cleaning up DNS resolver settings..."
+echo "[4/5] Cleaning up DNS resolver settings..."
 RESOLV_CONF="$PREFIX/etc/resolv.conf"
 if [ -f "$RESOLV_CONF" ]; then
     if grep -q "no-aaaa" "$RESOLV_CONF" 2>/dev/null; then
@@ -121,12 +131,12 @@ if [ -f "$RESOLV_CONF" ]; then
 fi
 
 # ==============================================================================
-# [4/5] Restore Upstream Binary Assets
+# [5/5] Restore Upstream Binary Assets
 # ==============================================================================
-echo "[4/5] Restoring upstream binary state..."
+echo "[5/5] Restoring upstream binary state..."
 
 revert_binary_inplace() {
-    python3 - << 'PYEOF' 2>/dev/null || true
+    python3 - << 'PYEOF'
 import zipfile, zlib, io, struct, binascii, os, sys, re
 
 prefix = os.environ.get("PREFIX", "/data/data/com.termux/files/usr")
@@ -140,8 +150,13 @@ candidates = [
 target = None
 for c in candidates:
     if os.path.isfile(c) and not os.path.islink(c):
-        target = c
-        break
+        try:
+            with open(c, 'rb') as tf:
+                if tf.read(4) == b'\x7fELF':
+                    target = c
+                    break
+        except Exception:
+            pass
 
 if not target:
     sys.exit(0)
@@ -166,8 +181,8 @@ try:
     info = zf.getinfo('index.html')
     local_hdr_offset = zip_start + info.header_offset
     fn_len = int.from_bytes(data[local_hdr_offset+26:local_hdr_offset+28], 'little')
-    extra_len = int.from_bytes(data[local_hdr_offset+28:local_hdr_offset+30], 'little')
-    data_offset = local_hdr_offset + 30 + fn_len + extra_len
+    old_extra_len = int.from_bytes(data[local_hdr_offset+28:local_hdr_offset+30], 'little')
+    data_offset = local_hdr_offset + 30 + fn_len + old_extra_len
 
     old_comp = data[data_offset : data_offset + info.compress_size]
     decomp = zlib.decompress(old_comp, -15)
@@ -175,6 +190,7 @@ try:
     gift = b"\xf0\x9f\x8e\x81"
     if gift in decomp and b'<title>Jetski Web</title>' in decomp:
         # Already restored or upstream default
+        print(f"      Default web assets already present on {target}")
         sys.exit(0)
 
     # 1. Restore Title
@@ -194,21 +210,23 @@ try:
 
     diff = info.compress_size - len(new_comp)
     if diff < 0:
-        # Fallback to upstream re-fetch if compressed size exceeded
         sys.exit(1)
 
+    old_extra = data[local_hdr_offset + 30 + fn_len : local_hdr_offset + 30 + fn_len + old_extra_len]
     pad_bytes = b'XX' + struct.pack('<H', diff - 4) + (b'\x00' * (diff - 4)) if diff >= 4 else (b'\x00' * diff)
+    new_extra = old_extra + pad_bytes
+    new_extra_len = len(new_extra)
 
     struct.pack_into('<III', data, local_hdr_offset + 14, new_crc, len(new_comp), new_uncomp)
-    struct.pack_into('<H', data, local_hdr_offset + 28, diff)
+    struct.pack_into('<H', data, local_hdr_offset + 28, new_extra_len)
 
     payload_start = local_hdr_offset + 30 + fn_len
-    data[payload_start : payload_start + diff] = pad_bytes
-    data[payload_start + diff : payload_start + diff + len(new_comp)] = new_comp
+    data[payload_start : payload_start + new_extra_len] = new_extra
+    data[payload_start + new_extra_len : payload_start + new_extra_len + len(new_comp)] = new_comp
 
     flags = int.from_bytes(data[local_hdr_offset+6:local_hdr_offset+8], 'little')
     if flags & 0x08:
-        dd_offset = payload_start + diff + len(new_comp)
+        dd_offset = payload_start + new_extra_len + len(new_comp)
         if data[dd_offset:dd_offset+4] == b'PK\x07\x08':
             struct.pack_into('<III', data, dd_offset + 4, new_crc, len(new_comp), new_uncomp)
         else:
@@ -231,7 +249,7 @@ try:
     with open(target, 'wb') as f:
         f.write(data)
     print(f"      Restored original web assets inside: {target}")
-except Exception as e:
+except Exception:
     sys.exit(1)
 PYEOF
 }
@@ -249,26 +267,20 @@ else
 fi
 
 # ==============================================================================
-# [5/5] Verify Upstream CLI Functionality
+# Final Verification
 # ==============================================================================
-echo "[5/5] Verifying upstream Antigravity CLI..."
-
+echo ""
+echo "======================================================"
+echo "    Web GUI Successfully Removed / Reverted          "
+echo "======================================================"
+echo ""
 if [ -f "$BIN_DIR/agy" ]; then
-    echo "      Antigravity CLI binary intact: $BIN_DIR/agy"
-    if [ -f "$HOME/.gemini/antigravity-cli/antigravity-oauth-token" ]; then
-        echo "      Authentication credentials preserved: ~/.gemini/antigravity-cli/antigravity-oauth-token"
-    fi
-    echo ""
-    echo "======================================================"
-    echo "    Web GUI Successfully Removed / Reverted          "
-    echo "======================================================"
-    echo ""
     echo "Your upstream Antigravity CLI remains fully functional."
     echo "To launch the CLI in your terminal, simply run:"
     echo "  agy"
-    echo ""
 else
     echo "[-] Warning: Upstream 'agy' binary was not found in $BIN_DIR."
     echo "    You can reinstall it cleanly from upstream with:"
     echo "    curl -fsSL https://raw.githubusercontent.com/wallentx/antigravity-cli-termux/dev/install.sh | bash"
 fi
+echo ""

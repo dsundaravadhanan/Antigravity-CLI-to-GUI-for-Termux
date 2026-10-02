@@ -111,68 +111,46 @@ cat << 'EOF' > "$PREFIX/bin/agy-gui"
 #!/data/data/com.termux/files/usr/bin/bash
 PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
 PORT=4400
+
+for arg in "$@"; do
+    case "$arg" in
+        --hub-port=*) PORT="${arg#*=}" ;;
+    esac
+done
+
 URL="http://localhost:${PORT}"
 
+# 1. Ensure fast DNS
+RESOLV_CONF="$PREFIX/etc/resolv.conf"
+if [ -f "$RESOLV_CONF" ] && ! grep -q "no-aaaa" "$RESOLV_CONF" 2>/dev/null; then
+    echo "options timeout:1 attempts:2 no-aaaa" >> "$RESOLV_CONF"
+fi
+
+# 2. Check if already running on target port
 if curl -s -m 1 "http://127.0.0.1:${PORT}/" >/dev/null 2>&1; then
     echo "Antigravity GUI is already running on ${URL}"
     termux-open-url "${URL}" 2>/dev/null || termux-open "${URL}" 2>/dev/null || xdg-open "${URL}" 2>/dev/null
     exit 0
 fi
 
-# Auto-restore Antigravity logo & title if an upstream update replaced the binary
-if command -v python3 >/dev/null 2>&1 && [ -f "$PREFIX/bin/agy.va39" ]; then
-    python3 - << 'PYEOF' 2>/dev/null || true
-import zipfile, zlib, io, struct, binascii, os, sys, re
-target = os.path.expandvars('$PREFIX/bin/agy.va39')
-if os.path.isfile(target):
-    try:
-        with open(target, 'rb') as f: data = bytearray(f.read())
-        eocd_idx = data.rfind(b'PK\x05\x06')
-        if eocd_idx != -1:
-            size_cd = int.from_bytes(data[eocd_idx+12:eocd_idx+16], 'little')
-            offset_cd = int.from_bytes(data[eocd_idx+16:eocd_idx+20], 'little')
-            zip_start = eocd_idx - size_cd - offset_cd
-            zf = zipfile.ZipFile(io.BytesIO(data[zip_start:eocd_idx+22]))
-            if 'index.html' in zf.namelist():
-                info = zf.getinfo('index.html')
-                lh = zip_start + info.header_offset
-                flen = int.from_bytes(data[lh+26:lh+28], 'little')
-                xlen = int.from_bytes(data[lh+28:lh+30], 'little')
-                decomp = zlib.decompress(data[lh+30+flen+xlen : lh+30+flen+xlen+info.compress_size], -15)
-                if b'\xf0\x9f\x8e\x81' in decomp:
-                    decomp = decomp.replace(b'<title>Jetski Web</title>', b'<title>Antigravity CLI</title>')
-                    decomp = re.sub(rb'<!--.*?-->\s*', b'', decomp)
-                    decomp = re.sub(rb'^\s*//.*?\n', b'', decomp, flags=re.MULTILINE)
-                    decomp = re.sub(rb'\n\s*\n', b'\n', decomp)
-                    old_icon = b"viewBox='0 0 100 100'><text y='.9em' font-size='90'>\xf0\x9f\x8e\x81</text>"
-                    new_icon = b"viewBox='0 0 24 24'><defs><filter id='b' x='-30%' y='-30%' width='160%' height='160%'><feGaussianBlur stdDeviation='2.8'/></filter><mask id='m'><path d='M21.751 22.607c1.34 1.005 3.35.335 1.508-1.508C17.73 15.74 18.904 1 12.037 1 5.17 1 6.342 15.74.815 21.1c-2.01 2.009.167 2.511 1.507 1.506 5.192-3.517 4.857-9.714 9.715-9.714 4.857 0 4.522 6.197 9.714 9.715z' fill='%23fff'/></mask></defs><g mask='url(%23m)'><rect width='24' height='24' fill='%233186FF'/><g filter='url(%23b)'><ellipse cx='12' cy='2.5' rx='5' ry='3.5' fill='%23FBBC04'/><ellipse cx='13.5' cy='3.5' rx='4' ry='3.5' fill='%23EA4335' opacity='0.8'/><ellipse cx='10' cy='3' rx='3.5' ry='3' fill='%23FFEE48' opacity='0.85'/><ellipse cx='6' cy='8' rx='4.5' ry='4.5' fill='%2300B95C'/><ellipse cx='18' cy='8' rx='4.5' ry='4.5' fill='%23FC413D'/><ellipse cx='12' cy='14' rx='5.5' ry='5.5' fill='%233186FF'/><ellipse cx='4' cy='20' rx='4' ry='4' fill='%233186FF'/><ellipse cx='20' cy='20' rx='4' ry='4' fill='%233186FF'/></g></g>"
-                    decomp = decomp.replace(old_icon, new_icon)
-                    touch_tag = b'''rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23202124'/><g transform='translate(14,14) scale(3)'><defs><filter id='bt' x='-30%' y='-30%' width='160%' height='160%'><feGaussianBlur stdDeviation='2.8'/></filter><mask id='mt'><path d='M21.751 22.607c1.34 1.005 3.35.335 1.508-1.508C17.73 15.74 18.904 1 12.037 1 5.17 1 6.342 15.74.815 21.1c-2.01 2.009.167 2.511 1.507 1.506 5.192-3.517 4.857-9.714 9.715-9.714 4.857 0 4.522 6.197 9.714 9.715z' fill='%23fff'/></mask></defs><g mask='url(%23mt)'><rect width='24' height='24' fill='%233186FF'/><g filter='url(%23bt)'><ellipse cx='12' cy='2.5' rx='5' ry='3.5' fill='%23FBBC04'/><ellipse cx='13.5' cy='3.5' rx='4' ry='3.5' fill='%23EA4335' opacity='0.8'/><ellipse cx='10' cy='3' rx='3.5' ry='3' fill='%23FFEE48' opacity='0.85'/><ellipse cx='6' cy='8' rx='4.5' ry='4.5' fill='%2300B95C'/><ellipse cx='18' cy='8' rx='4.5' ry='4.5' fill='%23FC413D'/><ellipse cx='12' cy='14' rx='5.5' ry='5.5' fill='%233186FF'/><ellipse cx='4' cy='20' rx='4' ry='4' fill='%233186FF'/><ellipse cx='20' cy='20' rx='4' ry='4' fill='%233186FF'/></g></g></g></svg>" />\n    <link rel="stylesheet" href="/jetbox.css"'''
-                    decomp = decomp.replace(b'rel="stylesheet" href="/jetbox.css"', touch_tag)
-                    ncrc = binascii.crc32(decomp)
-                    ncomp = zlib.compress(decomp, 9)[2:-4]
-                    diff = info.compress_size - len(ncomp)
-                    if diff >= 0:
-                        pad = b'XX' + struct.pack('<H', diff - 4) + (b'\x00' * (diff - 4)) if diff >= 4 else (b'\x00' * diff)
-                        struct.pack_into('<III', data, lh + 14, ncrc, len(ncomp), len(decomp))
-                        struct.pack_into('<H', data, lh + 28, diff)
-                        pstart = lh + 30 + flen
-                        data[pstart : pstart + diff] = pad
-                        data[pstart + diff : pstart + diff + len(ncomp)] = ncomp
-                        if int.from_bytes(data[lh+6:lh+8], 'little') & 0x08:
-                            dd = pstart + diff + len(ncomp)
-                            struct.pack_into('<III', data, dd + 4 if data[dd:dd+4] == b'PK\x07\x08' else dd, ncrc, len(ncomp), len(decomp))
-                        curr = zip_start + offset_cd
-                        while curr < zip_start + offset_cd + size_cd:
-                            if data[curr:curr+4] != b'PK\x01\x02': break
-                            cflen = int.from_bytes(data[curr+28:curr+30], 'little')
-                            if bytes(data[curr+46:curr+46+cflen]).decode('latin1') == 'index.html':
-                                struct.pack_into('<III', data, curr + 16, ncrc, len(ncomp), len(decomp))
-                                break
-                            curr += 46 + cflen + int.from_bytes(data[curr+30:curr+32], 'little') + int.from_bytes(data[curr+32:curr+34], 'little')
-                        with open(target, 'wb') as f: f.write(data)
-    except Exception: pass
-PYEOF
+# 3. Locate executable engine
+AGY_BIN=""
+if [ -x "$PREFIX/bin/agy.real" ]; then
+    AGY_BIN="$PREFIX/bin/agy.real"
+elif [ -x "$PREFIX/bin/agy.orig" ]; then
+    AGY_BIN="$PREFIX/bin/agy.orig"
+elif [ -x "$PREFIX/bin/agy" ]; then
+    AGY_BIN="$PREFIX/bin/agy"
+fi
+
+if [ -z "$AGY_BIN" ]; then
+    echo "[-] Error: Could not locate agy executable in $PREFIX/bin"
+    exit 1
+fi
+
+# 4. Auto-verify and restore GUI patch if upstream replaced binary
+if [ -x "$PREFIX/bin/agy-patch" ]; then
+    "$PREFIX/bin/agy-patch" --silent >/dev/null 2>&1 || true
 fi
 
 export AGY_ENABLE_HUB=1
@@ -187,7 +165,7 @@ export AGY_ENABLE_HUB=1
     done
 ) &
 
-exec "$PREFIX/bin/agy" --hub "$@"
+exec "$AGY_BIN" --hub "$@"
 EOF
 chmod +x "$PREFIX/bin/agy-gui"
 ln -sf "$PREFIX/bin/agy-gui" "$PREFIX/bin/agy-hub"
